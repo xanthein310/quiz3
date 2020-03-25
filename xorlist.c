@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdint.h>
+#include <time.h>
 
 typedef struct __list list;
 struct __list {
@@ -84,21 +85,28 @@ list *sort(list *start)
 int main()
 {
     list *list_ = NULL, *l;
+    struct timespec start, end;
+    FILE *file_time;
+    char buffer[32];
 
-    insert_node(&list_, 7);
-    insert_node(&list_, 8);
-    insert_node(&list_, 9);
-    insert_node(&list_, 10);
+    file_time = fopen("time.txt", "w+");
 
-    l = sort(list_);
-    while (l) {
-        printf("data = %d\n", l->data);
-        list *next = l->addr;
-        if (next)
-            next->addr = XOR(next->addr, l);
-        l = next;
+    for (int count=0; count<10000; count+=50) {
+        for (int i=0; i<count; i++)
+            insert_node(&list_, i);
+
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            sort(list_);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+
+        long time = (end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec);
+
+        int size = snprintf(buffer, sizeof(buffer), "%d %lu\n", count, time);
+        fwrite(buffer, 1, size, file_time);
+
+        delete_list(list_);
+        list_ = NULL;
     }
 
-
-    free(list_);
+    fclose(file_time);
 }
