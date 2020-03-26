@@ -201,23 +201,65 @@ int main()
     FILE *file_time;
     char buffer[32];
 
+#if 0
     file_time = fopen("time.txt", "w+");
 
     for (int count=0; count<10000; count+=50) {
         list_ = data_generator(count);
 
-            clock_gettime(CLOCK_MONOTONIC, &start);
-            sort(list_);
-            clock_gettime(CLOCK_MONOTONIC, &end);
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        //list *ll = sort(list_);
+        list *ll = opt_sort(list_, count, 50);
+        //list *ll = insert_sort(list_);
+        clock_gettime(CLOCK_MONOTONIC, &end);
 
         long time = (end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec);
 
         int size = snprintf(buffer, sizeof(buffer), "%d %lu\n", count, time);
         fwrite(buffer, 1, size, file_time);
 
-        delete_list(list_);
+        delete_list(ll);
         list_ = NULL;
     }
 
     fclose(file_time);
+#endif
+#if 1
+    file_time = fopen("time_opt.txt", "w+");
+
+    for (int count=0; count<100; count++) {
+
+        list_ = data_generator(10000);
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        list *ll = opt_sort(list_, 10000, count);
+        //list *ll = insert_sort(list_);
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        long time = (end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec);
+
+        int size = snprintf(buffer, sizeof(buffer), "%d %lu\n", count, time);
+        fwrite(buffer, 1, size, file_time);
+
+        delete_list(ll);
+        list_ = NULL;
+    }
+
+    fclose(file_time);
+#endif
+#if 0
+    list_ = data_generator(10000);
+
+    list *prev = NULL, *ll;
+    ll = l = opt_sort(list_, 10000, 30);
+    //ll = l = list_;
+    while (l) {
+        printf("data = %d\n", l->data);
+        list *next = XOR(l->addr, prev);
+        prev = l;
+        l = next;
+    }
+
+    delete_list(ll);
+#endif
 }
