@@ -184,6 +184,16 @@ list *sort(list *start)
     return start;
 }
 
+list * data_generator(int size)
+{
+    list *list_ = NULL;
+    srand(time(NULL));
+    for (int i=0; i<size; i++)
+        insert_node(&list_, rand());
+
+    return list_;
+}
+
 int main()
 {
     list *list_ = NULL, *l;
@@ -194,8 +204,7 @@ int main()
     file_time = fopen("time.txt", "w+");
 
     for (int count=0; count<10000; count+=50) {
-        for (int i=0; i<count; i++)
-            insert_node(&list_, i);
+        list_ = data_generator(count);
 
             clock_gettime(CLOCK_MONOTONIC, &start);
             sort(list_);
