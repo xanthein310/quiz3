@@ -35,6 +35,108 @@ void delete_list(list *l) {
     }
 }
 
+list *insert_sort(list *start)
+{
+    list *merge = NULL;
+    list *l = start;
+
+    while (l) {
+        list *next = l->addr;
+        if (next)
+            next->addr = XOR(next->addr, l);
+
+        //find place to insert
+        if (!merge) {
+            merge = l;
+            merge->addr = NULL;
+        } else {
+            list *search = merge;
+            list *prev = NULL;
+
+            while (search && (l->data > search->data)) {
+                list *next_search = XOR(search->addr, prev);
+                prev = search;
+                search = next_search;
+            }
+
+            if (search) {
+                l->addr = XOR(prev, search);
+                if (prev)
+                    prev->addr = XOR(XOR(prev->addr, search), l);
+                else
+                    merge = l;
+                search->addr = XOR(l, XOR(prev, search->addr));
+            } else {
+                l->addr = prev;
+                prev->addr = XOR(prev->addr, l);
+            }
+        }
+
+        l = next;
+    }
+    return merge;
+}
+
+list *opt_sort(list *start, int size, int S)
+{
+    if (!start || !start->addr)
+        return start;
+
+    if (size < S)
+        return insert_sort(start);
+
+    int half_size = size / 2;
+
+    list *left = start, *left_end = start, *right;
+    list *prev = NULL;
+    for (int i = 0; i < half_size - 1; i++) {
+        list *next = XOR(left_end->addr, prev);
+        prev = left_end;
+        left_end = next;
+    }
+
+    right = XOR(left_end->addr, prev);
+    right->addr = XOR(right->addr, left_end);
+    left_end->addr = prev;
+
+    left = opt_sort(left, half_size, S);
+    right = opt_sort(right, size - half_size, S);
+
+    for (list *merge = NULL; left || right;) {
+        if (!right || (left && left->data < right->data)) {
+            list *next = left->addr;
+            if (next)
+                next->addr = XOR(left, next->addr);
+
+            if (!merge) {
+                start = merge = left;
+                merge->addr = NULL;
+            } else {
+                merge->addr = XOR(merge->addr, left);
+                left->addr = merge;
+                merge = left;
+            }
+            left = next;
+        } else {
+            list *next = right->addr;
+            if (next)
+                next->addr = XOR(right, next->addr);
+
+            if (!merge) {
+                start = merge = right;
+                merge->addr = NULL;
+            } else {
+                merge->addr = XOR(merge->addr, right);
+                right->addr = merge;
+                merge = right;
+            }
+            right = next;
+        }
+    }
+
+    return start;
+}
+
 list *sort(list *start)
 {
     if (!start || !start->addr)
